@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test des cartes</title>
+</head>
+<body>
+    <h1>Test du chargement des cartes</h1>
+    <div id="test-images">
+        <img src="/cards/ace_of_spades.png" alt="As de pique" style="width: 100px; margin: 5px;">
+        <img src="/cards/king_of_hearts.png" alt="Roi de coeur" style="width: 100px; margin: 5px;">
+        <img src="/cards/queen_of_diamonds.png" alt="Dame de carreau" style="width: 100px; margin: 5px;">
+        <img src="/cards/jack_of_clubs.png" alt="Valet de trèfle" style="width: 100px; margin: 5px;">
+    </div>
+    <script>
+        console.log('Test de chargement des images...');
+        document.querySelectorAll('img').forEach((img, index) => {
+            img.onload = () => console.log(`✅ Image ${index + 1} chargée:`, img.src);
+            img.onerror = () => console.error(`❌ Erreur image ${index + 1}:`, img.src);
+        });
+    </script>
+</body>
+</html>

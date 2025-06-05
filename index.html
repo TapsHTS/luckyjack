@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Jack - Blackjack 3D</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f3460, #16537e);
+            overflow: hidden;
+            color: white;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #canvas {
+            display: block;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .ui-element {
+            pointer-events: auto;
+        }
+        
+        #gameInfo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+        
+        #debugInfo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            font-size: 12px;
+            max-width: 250px;
+            color: #cccccc;
+        }
+        
+        #playerInfo, #dealerInfo {
+            margin-bottom: 10px;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #hitBtn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+        
+        #standBtn {
+            background: linear-gradient(45deg, #4834d4, #686de0);
+            color: white;
+        }
+        
+        #newGameBtn {
+            background: linear-gradient(45deg, #00d2d3, #01a3a4);
+            color: white;
+        }
+        
+        #betControls {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        #betAmount {
+            color: #ffd700;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .bet-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: linear-gradient(45deg, #ffd700, #ffed4a);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        #message.show {
+            opacity: 1;
+        }
+        
+        .win { color: #00ff00; }
+        .lose { color: #ff0000; }
+        .push { color: #ffff00; }
+        
+        #loadingScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f3460, #16537e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        #loadingText {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="canvas"></canvas>
+        
+        <div id="loadingScreen">
+            <div class="spinner"></div>
+            <div id="loadingText">Chargement du jeu...</div>
+        </div>
+        
+        <div id="ui">
+            <div id="gameInfo" class="ui-element">
+                <div id="dealerInfo">
+                    <h3>Croupier</h3>
+                    <div id="dealerScore">Score: ?</div>
+                    <div id="dealerCards">Cartes: 0</div>
+                </div>
+                <div id="playerInfo">
+                    <h3>Joueur</h3>
+                    <div id="playerScore">Score: 0</div>
+                    <div id="playerCards">Cartes: 0</div>
+                    <div id="playerMoney">Argent: 1000€</div>
+                </div>
+            </div>
+            
+            <div id="debugInfo" class="ui-element">
+                <h4>🔧 Debug</h4>
+                <div id="textureCount">Textures: 0</div>
+                <div id="cardCount">Cartes 3D: 0</div>
+                <div id="lastError">Pas d'erreur</div>
+            </div>
+            
+            <div id="betControls" class="ui-element">
+                <span>Mise:</span>
+                <button class="bet-btn ui-element" onclick="game.adjustBet(-10)">-10€</button>
+                <button class="bet-btn ui-element" onclick="game.adjustBet(-50)">-50€</button>
+                <span id="betAmount">50€</span>
+                <button class="bet-btn ui-element" onclick="game.adjustBet(50)">+50€</button>
+                <button class="bet-btn ui-element" onclick="game.adjustBet(10)">+10€</button>
+            </div>
+            
+            <div id="controls">
+                <button id="hitBtn" class="btn ui-element" onclick="game.hit()">Tirer</button>
+                <button id="standBtn" class="btn ui-element" onclick="game.stand()">Rester</button>
+                <button id="newGameBtn" class="btn ui-element" onclick="game.newGame()">Nouvelle Partie</button>
+                <button id="testBtn" class="btn ui-element" onclick="game.testCards()" style="background: linear-gradient(45deg, #ff9500, #ffad33); font-size: 14px; padding: 10px 20px;">Test Cartes</button>
+            </div>
+            
+            <div id="message"></div>
+        </div>
+    </div>
+    
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
